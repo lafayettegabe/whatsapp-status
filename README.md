@@ -7,3 +7,12 @@ It is working but each user needs to make some changes in the code (i.e. compute
 
 ### v0.2.0 - UI
 New QoL with a UI using tkinter, still needs to be fully integrated with the driver though.
+
+
+<p align="center">
+  <br>
+  <b>Login Screen</b> (popup)
+  <br><br>
+  <img src="https://gcdnb.pbrd.co/images/NeGZr7WzLtZT.png" alt="Login Image" title="Login Screen">
+</p>
+
