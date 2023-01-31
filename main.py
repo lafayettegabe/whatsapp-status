@@ -1,14 +1,5 @@
-from status import GetStatus
+from ui import UI
 
-def loop():
-    
-    i = input("Run or Config? ")
-
-    if(i == 'config'):
-        wpp.config()
-    elif(i == 'run'):
-        wpp.run(input("Number to check: "))
-    loop()
-
-wpp = GetStatus()
-loop()
+if __name__ == "__main__":
+    app = UI()
+    app.root.mainloop()
