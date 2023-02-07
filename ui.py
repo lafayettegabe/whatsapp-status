@@ -9,7 +9,7 @@ class UI():
     def __init__(self):        
         # Create the main window
         self.root = tk.Tk()
-        self.driver = GetStatus()
+        self.driver = GetStatus() # comment this line to test the UI
         
         # Set the window size and title
         self.root.geometry("550x550")
