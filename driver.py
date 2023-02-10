@@ -1,4 +1,6 @@
+# import required modules
 import os
+import pickle
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,28 +9,38 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Exception NoSuchWindowException when windows get closed
-
 class GetStatus():
-
     def __init__(self) -> None:
-        
-        self.options = webdriver.ChromeOptions();
-        self.options.add_argument(f"user-data-dir={os.path.dirname(os.path.abspath(__file__))}/profile")
-        self.options.add_argument("--disable-application-cache")
-        self.options.add_argument("--disable-infobars")
-        self.options.add_argument("--disable-dev-shm-usage")
-        self.options.add_argument("--disable-gpu")
-        self.options.add_argument("--disable-browser-side-navigation")
-        self.options.add_argument("--disable-popup-blocking")
+        # Chrome options
+        self.options = webdriver.ChromeOptions()
         self.options.add_argument("--disable-extensions")
-        self.options.add_argument("--start-maximized")
-        self.options.add_argument('--remote-debugging-port=9222')
-        self.options.add_argument('--headless')        
-        self.options.add_experimental_option("excludeSwitches", ["enable-logging"])
-                
-        self.driver = webdriver.Chrome(options=self.options, service=ChromeService(ChromeDriverManager().install()))
-        self.driver = webdriver.Chrome(ChromeDriverManager().install())
+        self.options.add_argument("--disable-gpu")
+        self.options.add_argument("--disable-dev-shm-usage")
+        self.options.add_argument("--no-sandbox")
+        self.options.add_argument("start-maximized")
+        self.options.add_argument("disable-infobars")
+        self.options.add_argument("--disable-browser-side-navigation")
+
+        self.cookies_file = "whatsapp_cookies.pkl"
+
+        # check if cookies file exists
+        if os.path.exists(self.cookies_file):
+            # load cookies from file
+            with open(self.cookies_file, "rb") as f:
+                self.cookies = pickle.load(f)
+            # add cookies to options
+            for cookie in self.cookies:
+                self.options.add_argument(f"--cookie={cookie['name']}={cookie['value']}")
+
+        # create driver instance
+        self.driver = webdriver.Chrome(options=self.options)
+
+    def save_cookies(self):
+        # get cookies from driver
+        cookies = self.driver.get_cookies()
+        # save cookies to file
+        with open(self.cookies_file, "wb") as f:
+            pickle.dump(cookies, f)
 
     def seturl(self):
         self.url = f"https://web.whatsapp.com/send/?phone={self.id}&text&type=phone_number&app_absent=0"
@@ -63,7 +75,7 @@ class GetStatus():
             finally:
                 print(self.result)
                 self.count = 3
-                self.driver.quit()
+                # self.driver.quit()
 
     def run(self, id):
         
