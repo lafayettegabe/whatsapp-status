@@ -1,8 +1,12 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as fd
-from csv_processor import process_csv
+from tkinter.filedialog import askopenfilename
 from driver import GetStatus
+import pandas as pd
+from PIL import Image, ImageTk
+import threading
+
 
 class UI():
     
@@ -32,7 +36,7 @@ class UI():
         # Create a login button
         self.style = ttk.Style()
         self.style.configure("Login.TButton", padding=3, relief="solid", borderwidth=3, font=("Helvetica", 12), background="#25D366")
-        self.login_button = ttk.Button(self.header_frame, text="Login", style="Login.TButton", command=lambda: self.switch_bindings())
+        self.login_button = ttk.Button(self.header_frame, text="Login", style="Login.TButton", command=lambda: self.login())
         self.login_button.pack(side=tk.RIGHT)
 
 
@@ -67,10 +71,10 @@ class UI():
         self.style = ttk.Style()
         self.style.configure("Round.TButton", padding=3, relief="solid", borderwidth=3, font=("Helvetica", 12), shape="circle")
         
-        self.upload_button = ttk.Button(self.input_frame, text="Upload .CSV", style="Round.TButton", command=self.upload_csv)
-        self.downloadall_button = ttk.Button(self.input_frame, text="Invalid Only .CSV", style="Round.TButton", command=self.download_invalid)
-        self.downloadvalid_button = ttk.Button(self.input_frame, text="Valid Only .CSV", style="Round.TButton", command=self.download_valid)
-        self.downloadinvalid_button = ttk.Button(self.input_frame, text="Download .CSV", style="Round.TButton", command=self.download_all)
+        self.upload_button = ttk.Button(self.input_frame, text="Upload File", style="Round.TButton", command=self.upload_file)
+        self.downloadall_button = ttk.Button(self.input_frame, text="Invalid Only", style="Round.TButton", command=self.download_invalid)
+        self.downloadvalid_button = ttk.Button(self.input_frame, text="Valid Only", style="Round.TButton", command=self.download_valid)
+        self.downloadinvalid_button = ttk.Button(self.input_frame, text="Download", style="Round.TButton", command=self.download_all)
         
         # Create a button to upload a CSV file
         self.upload_button.pack(side=tk.LEFT, pady=1, padx=1)
@@ -80,10 +84,14 @@ class UI():
         self.downloadvalid_button.pack(side=tk.RIGHT, pady=1, padx=1)
         self.downloadinvalid_button.pack(side=tk.RIGHT, pady=1, padx=1)
         
-    def upload_csv(self):
-        file_path = fd.askopenfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
-        contacts = process_csv(file_path)
-        print(f"First column of uploaded CSV file: {contacts}")
+    def upload_file(self):
+        file_path = askopenfilename()
+        if file_path.endswith('.csv'):
+            data = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            data = pd.read_excel(file_path)
+        data_list = data[data.columns[0]].tolist()
+        # map(driver.run, data_list)
         
     def download_all(self):
         pass
@@ -95,18 +103,17 @@ class UI():
         pass
         
     # LOGIN
-    def switch_bindings(self):
+    def checkOne(self): #switch_bindings
         # unbind the <Return> from the old entry
         self.input_entry.unbind("<Return>")
 
-                # create the popup
+        # create the popup
         self.popup = tk.Toplevel(self.root)
-        self.popup.title("Login")
+        self.popup.title("Single Check")
         self.popup.iconbitmap("Project\logo.ico")
         self.popup.geometry("200x100")
         self.popup.configure(bg='#25D366')
         self.popup.resizable(0, 0)
-        self.popup.overrideredirect(True)
 
         # center the popup in the main window
         x = (self.root.winfo_screenwidth() - self.popup.winfo_reqwidth()) / 2
@@ -126,8 +133,6 @@ class UI():
         # create a new entry in the popup
         self.popup_entry = tk.Entry(frame, font=("TkDefaultFont", 14), bg='#fff', fg='black')
         self.popup_entry.pack()
-
-
 
         # bind the <Return> to the new entry
         self.popup.bind("<Return>", lambda event, entry=self.popup_entry: self.popup_action(event))
@@ -163,5 +168,34 @@ class UI():
         # Clear the input field
         self.input_entry.delete(0, tk.END)
 
-
+    def login(self):
         
+        # create the popup
+        self.popup = tk.Toplevel(self.root)
+        self.popup.title("Login")
+        self.popup.iconbitmap("Project\logo.ico")
+        self.popup.geometry("300x300")
+        self.popup.configure(bg='#25D366')
+        self.popup.resizable(0, 0)
+
+        # center the popup in the main window
+        x = (self.root.winfo_screenwidth() - self.popup.winfo_reqwidth()) / 2
+        y = (self.root.winfo_screenheight() - self.popup.winfo_reqheight()) / 2
+        self.popup.geometry("+%d+%d" % (x, y))
+
+        # make the main window unclickable and unmovable
+        self.popup.grab_set()
+
+        frame = tk.Frame(self.popup, bd=2, relief=tk.SUNKEN, bg='#25D366')
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        def qrcode():
+            self.driver.login()
+
+            self.label.config(image="Project\qr_code.png")
+            self.label.pack()
+
+        self.label = tk.Label(frame)
+        self.label.pack()
+
+        self.popup.after(100, qrcode)

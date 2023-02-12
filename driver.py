@@ -1,6 +1,8 @@
 # import required modules
 import os
 import pickle
+from io import BytesIO
+from PIL import Image, ImageTk
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,11 +10,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
+import requests
 
 class GetStatus():
     def __init__(self) -> None:
         # Chrome options
         self.options = webdriver.ChromeOptions()
+        self.options.add_argument("--headless")
+        self.options.add_argument('--window-size=900,600')
         self.options.add_argument("--disable-extensions")
         self.options.add_argument("--disable-gpu")
         self.options.add_argument("--disable-dev-shm-usage")
@@ -93,8 +98,20 @@ class GetStatus():
 
         return self.result
         
-    def config(self):
-        self.username = 'YOUR-COMPUTER-USERNAME' # OR input("Computer Username") ?
-        self.driver.get("https://web.whatsapp.com/")
-        self.start = input("LOGIN - PRESS ENTER")
-        self.driver.quit()
+    def login(self):
+        self.driver.get("https://web.whatsapp.com")
+        WebDriverWait(self.driver, 10)
+        # Take a screenshot of the whole window
+        screenshot = self.driver.get_screenshot_as_png()
+        img = Image.open(BytesIO(screenshot))
+        # Crop the image to the region containing the QR code
+        qr_code_img = img.crop((100, 150, 815, 575))
+        qr_code_img.save("Project\qr_code.png")
+
+    def check_login_status(driver):
+        try:
+            # Check if the chat list element is present, which means the user is logged in
+            chat_list = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div._3j8Pd")))
+            return True
+        except:
+            return False
