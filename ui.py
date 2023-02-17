@@ -1,11 +1,12 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as fd
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from driver import GetStatus
 import pandas as pd
 from PIL import Image, ImageTk
 import threading
+import time
 
 
 class UI():
@@ -90,17 +91,40 @@ class UI():
             data = pd.read_csv(file_path)
         elif file_path.endswith('.xlsx'):
             data = pd.read_excel(file_path)
+
         data_list = data[data.columns[0]].tolist()
-        # map(driver.run, data_list)
         
+        self.resultCSV = {}
+        self.validsCSV = []
+        self.invalidsCSV = []
+
+        for n in data_list:
+
+            status = self.check(n)
+            self.resultCSV[n] = status
+
+            if (status == "Valid Number."):
+                self.validsCSV.append(n)
+            elif (status == "Invalid Number."):
+                self.invalidsCSV.append(n)
+            
+            self.root.update()
+        self.driver.login()
+
     def download_all(self):
-        pass
+        df = pd.DataFrame.from_dict(self.resultCSV, orient='index')
+        file_path = asksaveasfilename(defaultextension='.csv', initialfile='all_numbers.csv')
+        df.to_csv(file_path)
         
     def download_valid(self):
-        pass
+        df = pd.DataFrame(self.validsCSV)
+        file_path = asksaveasfilename(defaultextension='.csv', initialfile='valid_numbers.csv')
+        df.to_csv(file_path)
     
     def download_invalid(self):
-        pass
+        df = pd.DataFrame(self.invalidsCSV)
+        file_path = asksaveasfilename(defaultextension='.csv', initialfile='invalid_numbers.csv')
+        df.to_csv(file_path)
         
     # LOGIN
     def checkOne(self): #switch_bindings
@@ -152,15 +176,18 @@ class UI():
     def add_message(self, event):
         # Get the text from the input field
         text = self.input_entry.get()
+        self.check(text)
 
+    def check(self, id):
         # For Brazil here it's 11, you can remove it but helps find errors beforehand. (can also be added a country code and use it)
-        if(len(text) < 11): 
-            self.message_list.insert(tk.END, f"{text}: ERROR! Not enough digits, verify the number and try again.")
-        elif(len(text) > 11):
-            self.message_list.insert(tk.END, f"{text}: ERROR! Too many digits, verify the number and try again.")
+        id = str(id)
+        if(len(id) < 11): 
+            self.message_list.insert(tk.END, f"{id}: ERROR! Not enough digits, verify the number and try again.")
+        elif(len(id) > 11):
+            self.message_list.insert(tk.END, f"{id}: ERROR! Too many digits, verify the number and try again.")
         else:
             
-            number = "55" + text
+            number = "55" + id
 
             self.message_list.insert(tk.END, f"Checking status for {number}...")
             self.message_list.insert(tk.END, f"{number} : {self.driver.run(number)}")
@@ -169,33 +196,33 @@ class UI():
         self.input_entry.delete(0, tk.END)
 
     def login(self):
-        
-        # create the popup
-        self.popup = tk.Toplevel(self.root)
-        self.popup.title("Login")
-        self.popup.iconbitmap("Project\logo.ico")
-        self.popup.geometry("300x300")
-        self.popup.configure(bg='#25D366')
-        self.popup.resizable(0, 0)
 
-        # center the popup in the main window
-        x = (self.root.winfo_screenwidth() - self.popup.winfo_reqwidth()) / 2
-        y = (self.root.winfo_screenheight() - self.popup.winfo_reqheight()) / 2
-        self.popup.geometry("+%d+%d" % (x, y))
+        self.driver.login()
+        # time.sleep(10)
 
-        # make the main window unclickable and unmovable
-        self.popup.grab_set()
+        # # create the popup
+        # self.popup = tk.Toplevel(self.root)
+        # self.popup.title("Login")
+        # self.popup.iconbitmap("Project\logo.ico")
+        # self.popup.geometry("300x300")
+        # self.popup.configure(bg='#25D366')
+        # self.popup.resizable(0, 0)
 
-        frame = tk.Frame(self.popup, bd=2, relief=tk.SUNKEN, bg='#25D366')
-        frame.pack(fill=tk.BOTH, expand=True)
+        # # center the popup in the main window
+        # x = (self.root.winfo_screenwidth() - self.popup.winfo_reqwidth()) / 2
+        # y = (self.root.winfo_screenheight() - self.popup.winfo_reqheight()) / 2
+        # self.popup.geometry("+%d+%d" % (x, y))
 
-        def qrcode():
-            self.driver.login()
+        # # make the main window unclickable and unmovable
+        # self.popup.grab_set()
 
-            self.label.config(image="Project\qr_code.png")
-            self.label.pack()
+        # frame = tk.Frame(self.popup, bd=2, relief=tk.SUNKEN, bg='#25D366')
+        # frame.pack(fill=tk.BOTH, expand=True)
 
-        self.label = tk.Label(frame)
-        self.label.pack()
-
-        self.popup.after(100, qrcode)
+        # image = Image.open("qr_code.png")
+        # image = image.resize((300, 300), Image.ANTIALIAS)
+        # image = ImageTk.PhotoImage(image)
+            
+        # self.canvas = tk.Canvas(frame, width=270, height=270)
+        # self.canvas.create_image(0, 0, anchor=tk.NW, image=image)
+        # self.canvas.pack(fill=tk.BOTH, expand=True)

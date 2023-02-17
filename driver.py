@@ -16,7 +16,7 @@ class GetStatus():
     def __init__(self) -> None:
         # Chrome options
         self.options = webdriver.ChromeOptions()
-        self.options.add_argument("--headless")
+        #self.options.add_argument("--headless") até resolver o qrcode no popup
         self.options.add_argument('--window-size=900,600')
         self.options.add_argument("--disable-extensions")
         self.options.add_argument("--disable-gpu")
@@ -51,7 +51,7 @@ class GetStatus():
         self.url = f"https://web.whatsapp.com/send/?phone={self.id}&text&type=phone_number&app_absent=0"
         
     def test(self):
-            self.time = self.count * 10
+            self.time = self.count * 5
             try:
                 # Check if it is valid, if there is the "Type a message"
                 self.a = WebDriverWait(self.driver, self.time).until(EC.visibility_of_element_located((By.XPATH, '/html/body/div[1]/div/div/div[4]/div/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]'))).get_attribute("title")
@@ -100,13 +100,15 @@ class GetStatus():
         
     def login(self):
         self.driver.get("https://web.whatsapp.com")
-        WebDriverWait(self.driver, 10)
-        # Take a screenshot of the whole window
-        screenshot = self.driver.get_screenshot_as_png()
-        img = Image.open(BytesIO(screenshot))
-        # Crop the image to the region containing the QR code
-        qr_code_img = img.crop((100, 150, 815, 575))
-        qr_code_img.save("Project\qr_code.png")
+        self.check_login_status()
+        # WebDriverWait(self.driver, 10)
+        # # Take a screenshot of the whole window
+        # screenshot = self.driver.get_screenshot_as_png()
+        # img = Image.open(BytesIO(screenshot))
+        # # Crop the image to the region containing the QR code
+        # qr_code_img = img.crop((100, 100, 350, 350))
+        # qr_code_img.save("Project\qr_code.png")
+
 
     def check_login_status(driver):
         try:
@@ -115,3 +117,8 @@ class GetStatus():
             return True
         except:
             return False
+        else:
+            self.driver.close()
+            self.chrome_options.add_argument('--headless')
+            driver.execute_script("window.open('https://web.whatsapp.com');")
+
