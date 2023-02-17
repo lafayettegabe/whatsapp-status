@@ -111,20 +111,24 @@ class UI():
             self.root.update()
         self.driver.login()
 
+        self.message_list.insert(tk.END, "")
+        self.message_list.insert(tk.END, f"Your verification is done for {len(data_list)} numbers.")
+        self.message_list.insert(tk.END, f"{len(self.validsCSV)} valids. {len(self.invalidsCSV)} invalids. {len(self.resultCSV) - (len(self.validsCSV) + len(self.invalidsCSV))} erros.")
+
     def download_all(self):
         df = pd.DataFrame.from_dict(self.resultCSV, orient='index')
         file_path = asksaveasfilename(defaultextension='.csv', initialfile='all_numbers.csv')
-        df.to_csv(file_path)
+        df.to_csv(file_path, header=False)
         
     def download_valid(self):
         df = pd.DataFrame(self.validsCSV)
         file_path = asksaveasfilename(defaultextension='.csv', initialfile='valid_numbers.csv')
-        df.to_csv(file_path)
+        df.to_csv(file_path, index=False, header=False)
     
     def download_invalid(self):
         df = pd.DataFrame(self.invalidsCSV)
         file_path = asksaveasfilename(defaultextension='.csv', initialfile='invalid_numbers.csv')
-        df.to_csv(file_path)
+        df.to_csv(file_path, index=False, header=False)
         
     # LOGIN
     def checkOne(self): #switch_bindings
@@ -190,10 +194,15 @@ class UI():
             number = "55" + id
 
             self.message_list.insert(tk.END, f"Checking status for {number}...")
-            self.message_list.insert(tk.END, f"{number} : {self.driver.run(number)}")
+            
+            self.root.update()
+            status = self.driver.run(number)
+            
+            self.message_list.insert(tk.END, f"{number} : {status}")
 
         # Clear the input field
         self.input_entry.delete(0, tk.END)
+        return status
 
     def login(self):
 
