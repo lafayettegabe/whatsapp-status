@@ -20,8 +20,13 @@ class UI():
         self.root.geometry("550x550")
         self.root.resizable(False, False)
         self.root.title("WhatsApp Status")
-        self.root.iconbitmap("Project\logo.ico")
-        
+
+        # try to set the window icon
+        try:
+            self.root.iconbitmap("logo.ico")
+        except:
+            pass
+
         # Create a frame for the title and login button
         self.header_frame = tk.Frame(self.root, bg="#25D366")
         self.header_frame.pack(side=tk.TOP, fill=tk.X)

@@ -38,7 +38,8 @@ class GetStatus():
                 self.options.add_argument(f"--cookie={cookie['name']}={cookie['value']}")
 
         # create driver instance
-        self.driver = webdriver.Chrome(options=self.options)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=self.options)
+        self.driver.get("https://web.whatsapp.com/")
 
     def save_cookies(self):
         # get cookies from driver
@@ -67,14 +68,14 @@ class GetStatus():
                     self.result = "Error."
                 else:
                     if(self.a == self.checkerTextInvalid):
-                        self.result = "Invalid Number."
+                        self.result = "Não tem WhatsApp"
                     else:
                         self.result = "Error."
             except:
                 self.result = "Error."
             else:
                 if(self.a == self.checkerTextValid):
-                    self.result = "Valid Number."
+                    self.result = "Instabilidade sistêmica na Meta."
                 else:
                     self.result = "Error."
             finally:
@@ -100,7 +101,7 @@ class GetStatus():
         
     def login(self):
         self.driver.get("https://web.whatsapp.com")
-        self.check_login_status()
+        #self.check_login_status()
         # WebDriverWait(self.driver, 10)
         # # Take a screenshot of the whole window
         # screenshot = self.driver.get_screenshot_as_png()
