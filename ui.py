@@ -4,6 +4,7 @@ import tkinter.filedialog as fd
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from driver import GetStatus
 import pandas as pd
+import numpy as np
 from PIL import Image, ImageTk
 import threading
 import time
@@ -25,7 +26,11 @@ class UI():
         try:
             self.root.iconbitmap("logo.ico")
         except:
-            pass
+            try:
+                self.root.iconbitmap("Project\logo.ico")
+            except:
+                pass
+        
 
         # Create a frame for the title and login button
         self.header_frame = tk.Frame(self.root, bg="#25D366")
@@ -78,63 +83,66 @@ class UI():
         self.style.configure("Round.TButton", padding=3, relief="solid", borderwidth=3, font=("Helvetica", 12), shape="circle")
         
         self.upload_button = ttk.Button(self.input_frame, text="Upload File", style="Round.TButton", command=self.upload_file)
-        self.downloadall_button = ttk.Button(self.input_frame, text="Invalid Only", style="Round.TButton", command=self.download_invalid)
-        self.downloadvalid_button = ttk.Button(self.input_frame, text="Valid Only", style="Round.TButton", command=self.download_valid)
-        self.downloadinvalid_button = ttk.Button(self.input_frame, text="Download", style="Round.TButton", command=self.download_all)
+        self.downloadall_button = ttk.Button(self.input_frame, text="Download File", style="Round.TButton", command=self.download_all)
         
         # Create a button to upload a CSV file
         self.upload_button.pack(side=tk.LEFT, pady=1, padx=1)
 
         # DOWNLOADS
         self.downloadall_button.pack(side=tk.RIGHT, pady=1, padx=1)
-        self.downloadvalid_button.pack(side=tk.RIGHT, pady=1, padx=1)
-        self.downloadinvalid_button.pack(side=tk.RIGHT, pady=1, padx=1)
         
     def upload_file(self):
         file_path = askopenfilename()
         if file_path.endswith('.csv'):
-            data = pd.read_csv(file_path)
+            self.data = pd.read_csv(file_path)
         elif file_path.endswith('.xlsx'):
-            data = pd.read_excel(file_path)
+            self.data = pd.read_excel(file_path)
 
-        data_list = data[data.columns[0]].tolist()
+        arr = np.array(self.data.columns[0]) # convert to numpy array to avoid pandas elimination of duplicate values
+        data_list = self.data[arr].tolist()
         
         self.resultCSV = {}
-        self.validsCSV = []
-        self.invalidsCSV = []
 
         for n in data_list:
 
-            status = self.check(n)
-            self.resultCSV[n] = status
+            isDuplicate = False
+            duplicateIndex = 0
 
-            if (status == "Valid Number."):
-                self.validsCSV.append(n)
-            elif (status == "Invalid Number."):
-                self.invalidsCSV.append(n)
-            
+            # Check duplicate values
+            if n in self.resultCSV:
+                isDuplicate = True
+                duplicateIndex = self.resultCSV.find(n) # get the index of the duplicate value
+
+            self.message_list.insert(tk.END, f"Checking {n}...")
+            self.message_list.see(tk.END)
             self.root.update()
+
+            if not isDuplicate:
+                status = self.check(n)
+            else:
+                status = "Número duplicado."
+                self.resultCSV[duplicateIndex] = status
+
+            self.resultCSV[n] = status
+            print(self.resultCSV[n])
+
+            self.root.update()
+
         self.driver.login()
 
         self.message_list.insert(tk.END, "")
         self.message_list.insert(tk.END, f"Your verification is done for {len(data_list)} numbers.")
-        self.message_list.insert(tk.END, f"{len(self.validsCSV)} valids. {len(self.invalidsCSV)} invalids. {len(self.resultCSV) - (len(self.validsCSV) + len(self.invalidsCSV))} erros.")
+        self.message_list.insert(tk.END, "")
+        self.message_list.insert(tk.END, "You can now download the results.")
+        self.message_list.see(tk.END)
+        self.root.update()
+
 
     def download_all(self):
-        df = pd.DataFrame.from_dict(self.resultCSV, orient='index')
-        file_path = asksaveasfilename(defaultextension='.csv', initialfile='all_numbers.csv')
-        df.to_csv(file_path, header=False)
-        
-    def download_valid(self):
-        df = pd.DataFrame(self.validsCSV)
-        file_path = asksaveasfilename(defaultextension='.csv', initialfile='valid_numbers.csv')
-        df.to_csv(file_path, index=False, header=False)
-    
-    def download_invalid(self):
-        df = pd.DataFrame(self.invalidsCSV)
-        file_path = asksaveasfilename(defaultextension='.csv', initialfile='invalid_numbers.csv')
-        df.to_csv(file_path, index=False, header=False)
-        
+        # add the results to the dataframe
+        self.data['Status'] = self.resultCSV.values()
+        file_path = asksaveasfilename(defaultextension='.csv', initialfile='Results.csv')
+        self.data.to_csv(file_path, index=False)
     # LOGIN
     def checkOne(self): #switch_bindings
         # unbind the <Return> from the old entry
@@ -197,16 +205,8 @@ class UI():
         else:
             
             number = "55" + id
-
-            self.message_list.insert(tk.END, f"Checking status for {number}...")
-            
-            self.root.update()
             status = self.driver.run(number)
-            
-            self.message_list.insert(tk.END, f"{number} : {status}")
 
-        # Clear the input field
-        self.input_entry.delete(0, tk.END)
         return status
 
     def login(self):

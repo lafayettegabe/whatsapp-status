@@ -52,17 +52,18 @@ class GetStatus():
         self.url = f"https://web.whatsapp.com/send/?phone={self.id}&text&type=phone_number&app_absent=0"
         
     def test(self):
+            self.count = 3
             self.time = self.count * 5
             try:
                 # Check if it is valid, if there is the "Type a message"
-                self.a = WebDriverWait(self.driver, self.time).until(EC.visibility_of_element_located((By.XPATH, '/html/body/div[1]/div/div/div[4]/div/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]'))).get_attribute("title")
+                self.a = WebDriverWait(self.driver, self.time).until(EC.visibility_of_element_located((By.XPATH, '/html/body/div[1]/div/div/div[5]/div/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]'))).get_attribute("title")
             except TimeoutException: 
                 try:
                     # Check if it is invalid, if there is the "Phone number shared via url is invalid."
                     self.a = WebDriverWait(self.driver, self.time).until(EC.visibility_of_element_located((By.XPATH, '/html/body/div[1]/div/span[2]/div/span/div/div/div/div/div/div[1]'))).get_attribute("innerHTML")
                 except TimeoutException:                
                     if(self.count > 1):
-                        count -= 1
+                        self.count -= 1
                         self.test(self)
                 except:
                     self.result = "Error."
@@ -94,7 +95,6 @@ class GetStatus():
         self.seturl()
         self.driver.get(self.url)
 
-        self.count = 3
         self.test()
 
         return self.result
