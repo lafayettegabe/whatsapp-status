@@ -110,6 +110,9 @@ class GetStatus():
         # qr_code_img = img.crop((100, 100, 350, 350))
         # qr_code_img.save("Project\qr_code.png")
 
+    def github(self):
+        self.driver.get("https://github.com/soaresgabe/whatsapp-status")
+
 
     def check_login_status(driver):
         try:

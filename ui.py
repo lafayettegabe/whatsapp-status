@@ -47,9 +47,13 @@ class UI():
         # Create a login button
         self.style = ttk.Style()
         self.style.configure("Login.TButton", padding=3, relief="solid", borderwidth=3, font=("Helvetica", 12), background="#25D366")
-        self.login_button = ttk.Button(self.header_frame, text="Login", style="Login.TButton", command=lambda: self.login())
-        self.login_button.pack(side=tk.RIGHT)
+        #self.login_button = ttk.Button(self.header_frame, text="Github repository", style="Login.TButton", command=lambda: self.login())
+        #self.login_button.pack(side=tk.RIGHT)
 
+        # Create a hyperlink label between the two buttons
+        self.link_label = ttk.Button(self.header_frame, text="Github repository", style="Login.TButton")
+        self.link_label.pack(side=tk.RIGHT)
+        self.link_label.bind("<Button-1>", lambda event: self.driver.github())
 
         # Create a frame for the message list
         self.message_frame = tk.Frame(self.frame, bg="white")
@@ -111,7 +115,8 @@ class UI():
             # Check duplicate values
             if n in self.resultCSV:
                 isDuplicate = True
-                duplicateIndex = self.resultCSV.find(n) # get the index of the duplicate value
+                # get the index of the duplicate value)
+                duplicateIndex = list(self.resultCSV.keys()).index(n) 
 
             self.message_list.insert(tk.END, f"Checking {n}...")
             self.message_list.see(tk.END)
